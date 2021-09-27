@@ -13,6 +13,10 @@ const io = new Server(httpServer, {
     origin: '*'
   }
 });
+<<<<<<< HEAD
+=======
+
+>>>>>>> init Commit
 const peerServer = ExpressPeerServer(httpServer, {
   debug: true,
 });
@@ -42,6 +46,13 @@ io.on("connection", (socket) => {
       io.to(roomId).emit("createMessage", message, userName);
     });
   });
+});
+
+io.engine.on('connection_error', (err) => {
+  console.log(err.req);      // the request object
+  console.log(err.code);     // the error code, for example 1
+  console.log(err.message);  // the error message, for example "Session ID unknown"
+  console.log(err.context);  // some additional error context
 });
 
 httpServer.listen(process.env.PORT || 4000);

@@ -1,4 +1,3 @@
-const socket = io("/");
 const videoGrid = document.getElementById("video-grid");
 const myVideo = document.createElement("video");
 const showChat = document.querySelector("#showChat");
@@ -24,7 +23,7 @@ const user = prompt("Enter your name");
 var peer = new Peer(undefined, {
   path: "/peerjs",
   host: "/",
-  port: "4000",
+  port: "443",
 });
 
 let myVideoStream;
@@ -141,3 +140,14 @@ socket.on("createMessage", (message, userName) => {
         <span>${message}</span>
     </div>`;
 });
+
+function onMediaSuccess(stream) {
+  var mediaRecorder = new MediaStreamRecorder(stream);
+  mediaRecorder.mimeType = 'video/webm';
+  mediaRecorder.ondataavailable = function (blob) {
+      // POST/PUT "Blob" using FormData/XHR2
+      var blobURL = URL.createObjectURL(blob);
+      document.write('<a href="' + blobURL + '">' + blobURL + '</a>');
+  };
+  mediaRecorder.start(3000);
+}
