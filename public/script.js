@@ -22,12 +22,7 @@ this.socket = io();
 
 const user = prompt("Enter your name");
 
-var peer = new Peer(undefined, {
-  path: "/peerjs",
-  host: "/",
-  port: "4000",
-});
-
+var peer = new Peer();
 let myVideoStream;
 
 // Get permission for the user's camera and microphone
