@@ -18,12 +18,14 @@ showChat.addEventListener("click", () => {
   document.querySelector(".header__back").style.display = "block";
 });
 
+this.socket = io();
+
 const user = prompt("Enter your name");
 
 var peer = new Peer(undefined, {
   path: "/peerjs",
   host: "/",
-  port: "443",
+  port: "4000",
 });
 
 let myVideoStream;
@@ -45,7 +47,7 @@ navigator.mediaDevices
         addVideoStream(video, userVideoStream);
       });
     });
-    socket.on('new-user-connected', (userId) =>{
+    this.socket.on('new-user-connected', (userId) =>{
       console.log("New user: " + userId);
       connectToNewUser(userId, stream);
     });
@@ -61,7 +63,7 @@ const connectToNewUser = (userId, stream) => {
 };
 
 peer.on("open", (id) => {
-  socket.emit("join-room", ROOM_ID, id, user);
+  this.socket.emit("join-room", ROOM_ID, id, user);
 });
 
 const addVideoStream = (video, stream) => {
@@ -78,14 +80,14 @@ let messages = document.querySelector(".messages");
 
 send.addEventListener("click", (e) => {
   if (text.value.length !== 0) {
-    socket.emit("message", text.value);
+    this.socket.emit("message", text.value);
     text.value = "";
   }
 });
 
 text.addEventListener("keydown", (e) => {
   if (e.key === "Enter" && text.value.length !== 0) {
-    socket.emit("message", text.value);
+    this.socket.emit("message", text.value);
     text.value = "";
   }
 });
@@ -130,7 +132,7 @@ inviteButton.addEventListener("click", (e) => {
   );
 });
 
-socket.on("createMessage", (message, userName) => {
+this.socket.on("createMessage", (message, userName) => {
   messages.innerHTML =
     messages.innerHTML +
     `<div class="message">
