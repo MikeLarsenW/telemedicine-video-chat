@@ -13,10 +13,7 @@ const io = new Server(httpServer, {
     origin: '*'
   }
 });
-<<<<<<< HEAD
-=======
 
->>>>>>> init Commit
 const peerServer = ExpressPeerServer(httpServer, {
   debug: true,
 });
