@@ -10,7 +10,10 @@ app.set("view engine", "ejs");
 const httpServer = createServer(app);
 const io = new Server(httpServer, {
   cors: {
-    origin: '*'
+    origin: "",
+    methods: ["GET", "POST"],
+    allowedHeaders: ["my-custom-header"],
+    credentials: true
   }
 });
 
