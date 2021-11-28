@@ -19,17 +19,21 @@ showChat.addEventListener("click", () => {
 });
 const socket = io('/')
 // const videoGrid = document.getElementById('video-grid')
-
+var recordedChunks = [];
+const user = prompt("Enter your name");
 const myPeer = new Peer(undefined, {})
 // const myVideo = document.createElement('video')
 myVideo.muted = true
-
+let myVideoStream;
+var options = { mimeType: "video/webm; codecs=vp8" };
+var mediaRecorder;
 navigator.mediaDevices.getUserMedia({
     video: true,
     audio: true
 }).then(stream => {
     addVideoStream(myVideo, stream)
-
+    myVideoStream =  stream;
+    mediaRecorder = new MediaRecorder(stream);
     myPeer.on('call', call => {
         call.answer(stream)
         const video = document.createElement('video')
@@ -47,7 +51,7 @@ navigator.mediaDevices.getUserMedia({
 })
 
 myPeer.on('open', id => {
-    socket.emit('join-room', ROOM_ID, id)
+    socket.emit('join-room', ROOM_ID, id, user)
 })
 
 function connectToNewUser(userId, stream) {
@@ -69,57 +73,6 @@ function addVideoStream(video, stream) {
     })
     videoGrid.append(video)
 }
-// this.socket = io();
-
-// const user = prompt("Enter your name");
-
-// const peer = new Peer();
-
-// let myVideoStream;
-
-// // Get permission for the user's camera and microphone
-// navigator.mediaDevices
-//   .getUserMedia({
-//     audio: true,
-//     video: true,
-//   })
-//   .then((stream) => { // Wait until the user media stream is resolved them add it to the application
-//     myVideoStream = stream;
-//     addVideoStream(myVideo, stream);
-
-//     peer.on("call", (call) => {
-//       call.answer(stream);
-//       const video = document.createElement("video");
-//       call.on("stream", (userVideoStream) => {
-//         addVideoStream(video, userVideoStream);
-//       });
-//     });
-//     this.socket.on('new-user-connected', (userId) =>{
-//       console.log("New user: " + userId);
-//       connectToNewUser(userId, stream);
-//     });
-//     socket.emit('connection-request', ROOM_ID, peer.id);
-//   });
-
-// const connectToNewUser = (userId, stream) => {
-//   const call = peer.call(userId, stream);
-//   const video = document.createElement("video");
-//   call.on("stream", (userVideoStream) => {
-//     addVideoStream(video, userVideoStream);
-//   });
-// };
-
-// peer.on("open", (id) => {
-//   this.socket.emit("join-room", ROOM_ID, id, user);
-// });
-
-// const addVideoStream = (video, stream) => {
-//   video.srcObject = stream;
-//   video.addEventListener("loadedmetadata", () => {
-//     video.play();
-//     videoGrid.append(video);
-//   });
-// };
 
 let text = document.querySelector("#chat_message");
 let send = document.getElementById("send");
@@ -127,14 +80,14 @@ let messages = document.querySelector(".messages");
 
 send.addEventListener("click", (e) => {
   if (text.value.length !== 0) {
-    this.socket.emit("message", text.value);
+    socket.emit("message", text.value);
     text.value = "";
   }
 });
 
 text.addEventListener("keydown", (e) => {
   if (e.key === "Enter" && text.value.length !== 0) {
-    this.socket.emit("message", text.value);
+    socket.emit("message", text.value);
     text.value = "";
   }
 });
@@ -142,6 +95,9 @@ text.addEventListener("keydown", (e) => {
 const inviteButton = document.querySelector("#inviteButton");
 const muteButton = document.querySelector("#muteButton");
 const stopVideo = document.querySelector("#stopVideo");
+const recordingButton = document.querySelector("#recordMeeting");
+var isRecording = false;
+
 muteButton.addEventListener("click", () => {
   const enabled = myVideoStream.getAudioTracks()[0].enabled;
   if (enabled) {
@@ -179,6 +135,107 @@ inviteButton.addEventListener("click", (e) => {
   );
 });
 
+recordingButton.addEventListener("click", () => {
+  let recordingOptions = null;
+  if (isRecording === false) {
+    html = `<i class="fas fa-stop-circle"></i>`;
+    mediaRecorder.start();
+    console.log(mediaRecorder.state);
+    console.log("recorder started");
+    recordingButton.classList.toggle("background__red");
+    recordingButton.innerHTML = html;
+    isRecording = true;
+  } else {
+    html = `<i class="fas fa-circle"></i>`;
+    mediaRecorder.stop();
+    const clipName = prompt('Enter a name for your sound clip');
+    recordingButton.classList.toggle("background__red");
+    recordingButton.innerHTML = html;
+      download(clipName);
+      isRecording = false;
+  }
+});
+
+function download(clipName) {
+  var blob = new Blob(recordedChunks, {
+    type: "video/webm"
+  });
+  var url = URL.createObjectURL(blob);
+  var a = document.createElement("a");
+  document.body.appendChild(a);
+  a.style = "display: none";
+  a.href = url;
+  a.download = `${clipName}.webm`;
+  a.click();
+  window.URL.revokeObjectURL(url);
+}
+// async function recordAudio() {
+//   const mimeType = 'audio/webm';
+//   shouldStop = false;
+//   const stream = await navigator.mediaDevices.getUserMedia({audio: true});
+//   handleRecord({stream, mimeType})
+// }
+
+// async function recordVideo() {
+//   const mimeType = 'video/webm';
+//   shouldStop = false;
+//   const constraints = {
+//     audio: true,
+//     video: true,
+//   };
+//   const stream = await navigator.mediaDevices.getUserMedia(constraints);
+//   handleRecord({stream, mimeType})
+// }
+
+// async function recordScreen() {
+//   const mimeType = 'video/webm';
+//   shouldStop = false;
+//   const constraints = {
+//     video: true
+//   };
+//   const displayStream = await navigator.mediaDevices.getDisplayMedia({video: true, audio: true});
+//   // voiceStream for recording voice with screen recording
+//   const voiceStream = await navigator.mediaDevices.getUserMedia({ audio: true, video: false });
+//   let tracks = [...displayStream.getTracks(), ...voiceStream.getAudioTracks()]
+//   const stream = new MediaStream(tracks);
+//   handleRecord({stream, mimeType})
+// }
+mediaRecorder.ondataavailable = function (e) {
+  if (e.data.size > 0) {
+    recordedChunks.push(e.data);
+  }
+}
+  
+// const handleRecord = function ({stream, mimeType}) {
+//   // to store collect stream chunks
+//   let recordedChunks = [];
+//   stopped = false;
+//   const mediaRecorder = new MediaRecorder(stream);
+
+//   mediaRecorder.ondataavailable = function (e) {
+//     if (e.data.size > 0) {
+//       recordedChunks.push(e.data);
+//     }
+//     // shouldStop => forceStop by user
+//     if (shouldStop === true && stopped === false) {
+//       mediaRecorder.stop();
+//       stopped = true;
+//     }
+//   };
+//   mediaRecorder.onstop = function () {
+//     const blob = new Blob(recordedChunks, {
+//       type: mimeType
+//     });
+//     recordedChunks = []
+//     const filename = window.prompt('Enter file name'); // input filename from user for download
+//     downloadLink.href = URL.createObjectURL(blob); // create download link for the file
+//     downloadLink.download = `${filename}.webm`; // naming the file with user provided name
+//     stopRecord();
+//   };
+
+//   mediaRecorder.start(200); // here 200ms is interval of chunk collection
+// };
+
 socket.on("createMessage", (message, userName) => {
   messages.innerHTML =
     messages.innerHTML +
@@ -200,3 +257,4 @@ function onMediaSuccess(stream) {
   };
   mediaRecorder.start(3000);
 }
+

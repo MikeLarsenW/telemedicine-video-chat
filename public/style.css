@@ -1,8 +1,8 @@
 @import url("https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap");
 
 :root {
-  --main-darklg: #1d2635;
-  --main-dark: #161d29;
+  --main-darklg: #7EC4E8;
+  --main-dark: #1e2f4d;
   --primary-color: #2f80ec;
   --main-light: #eeeeee;
   font-family: "Poppins", sans-serif;
@@ -49,10 +49,10 @@
 }
 
 video {
-  height: 300px;
-  border-radius: 1rem;
-  margin: 0.5rem;
-  width: 400px;
+  height: 45%;
+  border-radius: 10px;
+  margin: 5px;
+  width: 45%;
   object-fit: cover;
   transform: rotateY(180deg);
   -webkit-transform: rotateY(180deg);
@@ -94,7 +94,7 @@ video {
   display: flex;
   flex-direction: column;
   flex: 0.3;
-  background-color: #242f41;
+  background-color: #e6edf6;
 }
 
 .main__chat_window {
@@ -134,7 +134,7 @@ video {
 }
 
 .message > b {
-  color: #eeeeee;
+  color: rgb(0, 0, 0);
   display: flex;
   align-items: center;
   text-transform: capitalize;
@@ -146,7 +146,7 @@ video {
 }
 
 .message > span {
-  background-color: #eeeeee;
+  background-color: #7EC4E8;
   margin: 1rem 0;
   padding: 1rem;
   border-radius: 5px;
